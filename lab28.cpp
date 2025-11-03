@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -15,6 +16,9 @@ int main_menu();
 
 void mstone5bycolor(const list<Goat> &trip);
 void mstone6countolderthan(const list<Goat> &trip);
+void mstone7removecolor(list<Goat> &trip);
+void mstone8incrementageage(list<Goat> &trip);
+void mstone9sortlist(list<Goat> &trip);
 
 int main() {
     srand(static_cast<unsigned>(time(0)));
@@ -79,6 +83,15 @@ int main() {
             case 5:
                 mstone6countolderthan(trip);
                 break;
+            case 6:
+                mstone7removecolor(trip);
+                break;
+            case 7:
+                mstone8incrementageage(trip);
+                break;
+            case 8:
+                mstone9sortlist(trip);
+                break;
             default:
                 cout << "Invalid choice.\n";
                 break;
@@ -97,8 +110,12 @@ int main_menu() {
     cout << "---- STL algorithm milestones: ----\n";
     cout << "[4]  Milestone 5: Find first goat by color (find_if)\n";
     cout << "[5]  Milestone 6: Count goats older than X (count_if)\n";
+    cout << "[6]  Milestone 7: Remove all goats of a specific color (remove_if)\n";
+    cout << "[7]  Milestone 8: Increment age of all goats by X (for_each)\n";
+    cout << "[8]  Milestone 9: Sort goats by age (sort)\n";
+    cout << "Select an option (1-8) --> ";
     cin >> choice;
-    while (choice < 1 || choice > 5) {
+    while (choice < 1 || choice > 8) {
         cout << "Invalid, again --> ";
         cin >> choice;
     }
@@ -195,9 +212,72 @@ void mstone6countolderthan(const list<Goat> &trip) {//added this one so the one 
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         cout << "Invalid. Enter age X: ";
     }
-    int cnt = static_cast<int>(count_if(trip.begin(), trip.end(), [treshold](const Goat &g) {
+    int cnt = static_cast<int>(count_if(trip.begin(), trip.end(), [&](const Goat &g) {
         return g.get_age() > treshold;
     }));
     cout << cnt << " goats are older than " << treshold << " years.\n";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+}
+
+void mstone7removecolor(list<Goat> &trip) {
+    cout << "MILESTONE 7: Remove all goats of a specific color\n";
+    if (trip.empty()) {
+        cout << "\t[trip is empty]\n";
+        return;
+    }
+    cout << "Enter color to remove: ";
+    string color;
+    cin >> color;
+    auto originalSize = trip.size();
+    trip.remove_if([&color](const Goat &g) {
+        return g.get_color() == color;
+    });
+    cout << (originalSize - trip.size()) << " goats of color " << color << " removed.\n";
+}
+
+void mstone8incrementageage(list<Goat> &trip) {
+    cout << "MILESTONE 8: Increment age of all goats by X\n";
+    if (trip.empty()) {
+        cout << "\t[trip is empty]\n";
+        return;
+    }
+    cout << "Enter increment value X: ";
+    int increment;
+    while (!(cin >> increment) || increment < 0) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid. Enter increment value X: ";
+    }
+    for_each(trip.begin(), trip.end(), [increment](Goat &g) {
+        g.set_age(g.get_age() + increment);
+    });
+    cout << "All goats' ages incremented by " << increment << ".\n";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+}
+
+void mstone9sortlist(list<Goat> &trip) {
+    cout << "MILESTONE 9: Sort goats by age\n";
+    if (trip.size() < 2) {
+        cout << "\t[trip has less than 2 goats, no need to sort]\n";
+        return;
+    }
+    cout << "sort by [1] Name [2] Age -->>";
+    int option;
+    while (!(cin >> option) || (option != 1 && option != 2)) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid. sort by [1] Name [2] Age -->>";
+    }
+    if (option == 1) {
+        trip.sort();
+        cout << "Goats sorted by name.\n";
+    } else {
+        trip.sort([](const Goat &a, const Goat &b) {
+            if (a.get_age() != b.get_age()) return a.get_age() < b.get_age();
+
+            return a.get_name() < b.get_name();
+        });
+        cout << "Goats sorted by age.\n";
+    }
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 }
