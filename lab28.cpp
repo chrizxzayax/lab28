@@ -19,7 +19,6 @@ void mstone6countolderthan(const list<Goat> &trip);
 int main() {
     srand(static_cast<unsigned>(time(0)));
     
-    
 
     string names[SZ_NAMES];
     int nameCount = 0;
@@ -109,41 +108,96 @@ int main_menu() {
 void delete_goat(list<Goat> &trip) {
     cout << "DELETE A GOAT\n";
     int index = select_goat(trip);
+    if (index == 0) {
+        cout << "Delete cancelled.\n";
+        return;
+    }
     auto it = trip.begin();
-    advance(it, index-1);
+    advance(it, index - 1);
+    cout << "Deleting: " << it->get_name() << " (" << it->get_age() << ", " << it->get_color() << ")\n";
     trip.erase(it);
     cout << "Goat deleted. New trip size: " << trip.size() << endl;
 }
 
-void add_goat(list<Goat> &trip, string nms[], string cls[]) {
-    cout << "ADD A GOAT\n";
+void add_goat(list<Goat> &trip, string nms[], string cls[], int nameCount, int colorCount) {
+    cout << "ADD A GOAT (random selection)\n";
+    string nm = nms[rand() % nameCount];
     int age = rand() % MAX_AGE;
-    string nm = nms[rand() % SZ_NAMES];
-    string cl = cls[rand() % SZ_COLORS];
-    Goat tmp(nm, age, cl);
-    trip.push_back(tmp);
-    cout << "Goat added. New trip size: " << trip.size() << endl;
+    string cl = cls[rand() % colorCount];
+    trip.emplace_back(nm, age, cl);
+    cout << "Added: " << nm << " (" << age << ", " << cl << ")\n";
+    cout << "New trip size: " << trip.size() << endl;
 }
 
-void display_trip(list<Goat> trp) {
-    int i = 1;
-    for (auto gt: trp)
-        cout << "\t" 
-             << "[" << i++ << "] "
-             << gt.get_name() 
-             << " (" << gt.get_age() 
-             << ", " << gt.get_color() << ")\n";
-}
-
-int select_goat(list<Goat> trp) {
-    int input;
-    cout << "Make a selection:\n";
-    display_trip(trp);
-    cout << "Choice --> ";
-    cin >> input;
-    while (input < 1 or input > trp.size()) {
-        cout << "Invalid choice, again --> ";
-        cin >> input;
+void display_trip(const list<Goat> &trp) {
+    if (trp.empty()) {
+        cout << "\t[trip is empty]\n";
+        return;
     }
-    return input;
+    int i = 1;
+    for (const auto &gt : trp) {
+        cout << "\t" << "[" << i++ << "] " << gt.get_name() << " (" << gt.get_age() << ", " << gt.get_color() << ")\n";
+    }
+}
+
+int select_goat(const list<Goat> &trip) {
+    if (trip.empty()) {
+        cout << "Trip is empty.\n";
+        return 0;
+    }
+    cout << "Select a goat (or 0 to cancel):\n";
+    int idx = 1;
+    for (const auto &g : trip) {
+        cout << "  [" << idx << "] " << g.get_name() << " (" << g.get_age() << ", " << g.get_color() << ")\n";
+        ++idx;
+    }
+    int choice;
+    cout << "Choice --> ";
+    while (!(cin >> choice) || choice < 0 || choice >= idx) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid. Choice --> ";
+    }
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    return choice;
+}
+
+
+void mstone5bycolor(const list<Goat> &trip) {
+    cout << "MILESTONE 5: Find first goat by color\n";
+    if (trip.empty()) {
+        cout << "\t[trip is empty]\n";
+        return;
+    }
+    cout << "Enter color to search for: ";
+    string color;
+    cin >> color;
+    auto it = find_if(trip.begin(), trip.end(), [&color](const Goat &g) {
+        return g.get_color() == color;
+    });
+    if (it == trip.end()) {
+        cout << "No goat found with color: " << color << endl;
+    } else {
+        cout << "Found goat: " << it->get_name() << " (" << it->get_age() << ", " << it->get_color() << ")\n";
+    }
+}
+
+void mstone6countolderthan(const list<Goat> &trip) {//added this one so the one in the menu works
+    cout << "MILESTONE 6: Count goats older than X\n";
+    if (trip.empty()) {
+        cout << "\t[trip is empty]\n";
+        return;
+    }
+    cout << "Enter age X: ";
+    int treshold;
+    while (!(cin >> treshold) || treshold < 0) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid. Enter age X: ";
+    }
+    int cnt = static_cast<int>(count_if(trip.begin(), trip.end(), [treshold](const Goat &g) {
+        return g.get_age() > treshold;
+    }));
+    cout << cnt << " goats are older than " << treshold << " years.\n";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 }
