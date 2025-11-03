@@ -17,71 +17,89 @@ void mstone5bycolor(const list<Goat> &trip);
 void mstone6countolderthan(const list<Goat> &trip);
 
 int main() {
-    srand(time(0));
-    bool again;
+    srand(static_cast<unsigned>(time(0)));
+    
+    
 
-    // read & populate arrays for names and colors
-    ifstream fin("names.txt");
     string names[SZ_NAMES];
-    int i = 0;
-    while (fin >> names[i++]);
+    int nameCount = 0;
+    ifstream fin("names.txt");
+    if (!fin) {
+        cerr << "Error: names.txt not found." << endl;
+        return 1;
+    }
+    while (nameCount < SZ_NAMES && (fin >> names[nameCount])) ++nameCount;
     fin.close();
-    ifstream fin1("colors.txt");
+    if (nameCount == 0) {
+        cerr << "No names found in names.txt" << endl;
+        return 1;
+    }
+
     string colors[SZ_COLORS];
-    i = 0;
-    while (fin1 >> colors[i++]);
+    int colorCount = 0;
+    ifstream fin1("colors.txt");
+    if (!fin1) {
+        cerr << "Error: colors.txt not found." << endl;
+        return 1;
+    }
+    while (colorCount < SZ_COLORS && (fin1 >> colors[colorCount])) ++colorCount;
     fin1.close();
+    if (colorCount == 0) {
+        cerr << "No colors found in colors.txt" << endl;
+        return 1;
+    }
 
     // create & populate a trip of Goats using std::list of random size 8-15
     int tripSize = rand() % 8 + 8;
     list<Goat> trip;
-    int age;
-    string name, color;
-    for (int i = 0; i < tripSize; i++) {
-        age = rand() % MAX_AGE;  // defined in Goat.h
-        name = names[rand() % SZ_NAMES];
-        color = colors[rand() % SZ_COLORS];
-        Goat tmp(name, age, color);
-        trip.push_back(tmp);
+    for (int i = 0; i < tripSize; ++i) {
+        int age = rand() % MAX_AGE;
+        string nm = names[rand() % nameCount];
+        string cl = colors[rand() % colorCount];
+        Goat tmp(nm, age, cl);
+        trip.emplace_back(tmp);
     }
     
-    // Goat Manager 3001 Engine
-    int sel = main_menu();
-    while (sel != 4) {
-        switch (sel) {
+    bool running = true;
+    while (running) {
+        int choice = main_menu();
+        switch (choice) {
             case 1:
-                cout << "Adding a goat.\n";
                 add_goat(trip, names, colors);
                 break;
-            case 2:    
-                cout << "Removing a goat.\n";
+            case 2:
                 delete_goat(trip);
                 break;
-            case 3:    
-                cout << "Displaying goat data.\n";
+            case 3:
+                cout << "LIST OF GOATS\n";
                 display_trip(trip);
                 break;
+            case 4:
+                mstone5bycolor(trip);
+                break;
+            case 5:
+                mstone6countolderthan(trip);
+                break;
             default:
-                cout << "Invalid selection.\n";
+                cout << "Invalid choice.\n";
                 break;
         }
-        sel = main_menu();
     }
-    
 
     return 0;
 }
 
 int main_menu() {
-    cout << "*** GOAT MANAGER 3001 ***\n";
-    cout << "[1] Add a goat\n";
-    cout << "[2] Delete a goat\n";
-    cout << "[3] List goats\n";
-    cout << "[4] Quit\n";
-    cout << "Choice --> ";
-    int choice;
+    int choice = 0;
+    cout << "\n*** GOAT MANAGER 3001 (Expanded Menu) ***\n";
+    cout << "[1]  Add a goat\n";
+    cout << "[2]  Delete a goat\n";
+    cout << "[3]  List goats\n";
+    cout << "---- STL algorithm milestones: ----\n";
+    cout << "[4]  Milestone 5: Find first goat by color (find_if)\n";
+    cout << "[5]  Milestone 6: Count goats older than X (count_if)\n";
     cin >> choice;
-    while (choice < 1 || choice > 4) {
+    while (choice < 1 || choice > 5) {
         cout << "Invalid, again --> ";
         cin >> choice;
     }
