@@ -13,6 +13,9 @@ void add_goat(list<Goat> &trip, string [], string []);
 void display_trip(list<Goat> trip);
 int main_menu();
 
+void mstone5bycolor(const list<Goat> &trip);
+void mstone6countolderthan(const list<Goat> &trip);
+
 int main() {
     srand(time(0));
     bool again;
