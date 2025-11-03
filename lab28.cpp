@@ -1,17 +1,19 @@
-#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <list>
+#include <vector>
+#include <algorithm>
+#include <limits>
 #include "Goat.h"
 using namespace std;
 
 const int SZ_NAMES = 200, SZ_COLORS = 25;
 
-int select_goat(list<Goat> trip);
+int select_goat(const list<Goat> &trip);
 void delete_goat(list<Goat> &trip);
-void add_goat(list<Goat> &trip, string [], string []);
-void display_trip(list<Goat> trip);
+void add_goat(list<Goat> &trip, string names[], string colors[], int nameCount, int colorCount);
+void display_trip(const list<Goat> &trip);
 int main_menu();
 
 void mstone5bycolor(const list<Goat> &trip);
@@ -19,6 +21,9 @@ void mstone6countolderthan(const list<Goat> &trip);
 void mstone7removecolor(list<Goat> &trip);
 void mstone8incrementageage(list<Goat> &trip);
 void mstone9sortlist(list<Goat> &trip);
+void mstone10reverselist(list<Goat> &trip);
+void mstone11uniquename(list<Goat> &trip);
+void mstone12exportnamesToVector(const list<Goat> &trip);
 
 int main() {
     srand(static_cast<unsigned>(time(0)));
@@ -68,7 +73,7 @@ int main() {
         int choice = main_menu();
         switch (choice) {
             case 1:
-                add_goat(trip, names, colors);
+                add_goat(trip, names, colors, nameCount, colorCount);
                 break;
             case 2:
                 delete_goat(trip);
@@ -92,6 +97,19 @@ int main() {
             case 8:
                 mstone9sortlist(trip);
                 break;
+            case 9:
+                mstone10reverselist(trip);
+                break;
+            case 10:
+                mstone11uniquename(trip);
+                break;
+            case 11:
+                mstone12exportnamesToVector(trip);
+                break;
+            case 12:
+                cout << "Exiting GOAT MANAGER 3001. Goodbye!\n";
+                running = false;
+                break;
             default:
                 cout << "Invalid choice.\n";
                 break;
@@ -113,12 +131,17 @@ int main_menu() {
     cout << "[6]  Milestone 7: Remove all goats of a specific color (remove_if)\n";
     cout << "[7]  Milestone 8: Increment age of all goats by X (for_each)\n";
     cout << "[8]  Milestone 9: Sort goats by age (sort)\n";
-    cout << "Select an option (1-8) --> ";
-    cin >> choice;
-    while (choice < 1 || choice > 8) {
-        cout << "Invalid, again --> ";
-        cin >> choice;
+    cout << "[9]  Milestone 10: reverse the list (list::reverse)\n";
+    cout << "[10] Milestone11: Remove duplicate names (sort + unique)\n";
+    cout << "[11] Milestone 12: Export names to vector (std::transform)\n";
+    cout << "[12] Quit\n";
+    cout << "Select an option (1-12) --> ";
+    while (!(cin >> choice) || choice < 1 || choice > 12) {
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        cout << "Invalid. Select an option (1-12) --> ";
     }
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
     return choice;
 }
 
@@ -228,11 +251,13 @@ void mstone7removecolor(list<Goat> &trip) {
     cout << "Enter color to remove: ";
     string color;
     cin >> color;
-    auto originalSize = trip.size();
+    size_t originalSize = trip.size();
     trip.remove_if([&color](const Goat &g) {
         return g.get_color() == color;
     });
-    cout << (originalSize - trip.size()) << " goats of color " << color << " removed.\n";
+    size_t afterSize = trip.size();
+    cout << "Removed " << (originalSize - afterSize) << " goat(s) with color \"" << color << "\".\n";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 }
 
 void mstone8incrementageage(list<Goat> &trip) {
@@ -241,18 +266,10 @@ void mstone8incrementageage(list<Goat> &trip) {
         cout << "\t[trip is empty]\n";
         return;
     }
-    cout << "Enter increment value X: ";
-    int increment;
-    while (!(cin >> increment) || increment < 0) {
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        cout << "Invalid. Enter increment value X: ";
-    }
-    for_each(trip.begin(), trip.end(), [increment](Goat &g) {
-        g.set_age(g.get_age() + increment);
+    for_each(trip.begin(), trip.end(), [](Goat &g) {//removed X and just incremented by 1
+        g.set_age(g.get_age() + 1);
     });
-    cout << "All goats' ages incremented by " << increment << ".\n";
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cout << "All goats' ages have been incremented by 1.\n";
 }
 
 void mstone9sortlist(list<Goat> &trip) {
@@ -280,4 +297,48 @@ void mstone9sortlist(list<Goat> &trip) {
         cout << "Goats sorted by age.\n";
     }
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
+}
+
+//afterwork overtime, milestone 10, 11 and 12
+
+void mstone10reverselist(list<Goat> &trip) {
+    cout << "MILESTONE 10: Reverse goat list\n";
+    if (trip.size() < 2){
+        cout << "\t[trip has less than 2 goats, no need to reverse]\n";
+        return;
+    }
+    trip.reverse(); // reverse the list before saving
+    cout << "list order reversed before saving.\n";
+}
+
+void mstone11uniquename(list<Goat> &trip) {
+    cout << "MILESTONE 11: Remove duplicate names\n";
+    if (trip.size() < 2){
+        cout << "\t[trip has less than 2 goats, no need to remove duplicates]\n";
+        return;
+    }
+    trip.sort([](const Goat &a, const Goat &b) {
+        return a.get_name() < b.get_name();
+    });
+    trip.unique([](const Goat &a, const Goat &b) {
+        return a.get_name() == b.get_name();
+    });
+    cout << "Duplicates removed and list sorted by name after loading.\n";
+}
+
+void mstone12exportnamesToVector(const list<Goat> &trip) {
+    cout << "MILESTONE 12: Export goat names to vector\n";
+    if (trip.empty()) {
+        cout << "\t[trip is already empty]\n";
+        return;
+    }
+    vector<string> names;
+    names.reserve(trip.size());
+    transform(trip.begin(), trip.end(), back_inserter(names), [](const Goat &g) {
+        return g.get_name();
+    });
+    cout << "Exported goat names to vector:\n" << names.size() << " names exported.\n";
+    for (size_t i = 0; i < names.size(); ++i) {
+        cout << "\t[" << i + 1 << "] " << names[i] << "\n";
+    }
 }
